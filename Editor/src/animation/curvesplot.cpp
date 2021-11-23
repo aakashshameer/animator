@@ -177,7 +177,7 @@ void CurvesPlot::mouseReleaseEvent(QMouseEvent* event) {
         // Delete any overlapping points
         for (ControlPoint* ctrl_point : GetSelectedPoints()) {
             assert(ctrl_point != nullptr);
-            Curve& current_curve = hovered_point_->GetParentCurve();
+            Curve& current_curve = ctrl_point->GetParentCurve();
             ControlPoint* overlapped_point = current_curve.GetOverlappingPoint(ctrl_point);
             if (overlapped_point != nullptr) current_curve.RemoveControlPoint(overlapped_point);
         }
