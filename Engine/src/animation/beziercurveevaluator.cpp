@@ -19,14 +19,26 @@ std::vector<glm::vec2> BezierCurveEvaluator::EvaluateCurve(const std::vector<glm
     // a reasonable way.
 
     if (density == 0) density = 100;
-    for (size_t i = 0; i < ctrl_pts.size()-1; i++) {
-        for (int j = 0; j < density; j++) {
-            float t = j/(float) density;
-            glm::vec2 p = t*ctrl_pts[i+1] + (1-t)*ctrl_pts[i];
-            evaluated_pts.push_back(p);
+    if (ctrl_pts.size() < 4) {
+        for (size_t i = 0; i < ctrl_pts.size()-1; i++) {
+            for (int j = 0; j < density; j++) {
+                float t = j/(float) density;
+                glm::vec2 p = t*ctrl_pts[i+1] + (1-t)*ctrl_pts[i];
+                evaluated_pts.push_back(p);
+            }
         }
+        evaluated_pts.push_back(ctrl_pts.back());
+    } else {
+        for (size_t i = 0; i < ctrl_pts.size()-3; i+=3) {
+            for (int j = 0; j < density; j++) {
+                float t = j/(float) density;
+                glm::vec2 p = (1-t)*(1-t)*(1-t)*ctrl_pts[i] + 3*t*(1-t)*(1-t)*ctrl_pts[i+1] + 3*t*t*(1-t)*ctrl_pts[i+2] + t*t*t*ctrl_pts[i+3];
+                evaluated_pts.push_back(p);
+            }
+        }
+        //evaluated_pts.push_back(ctrl_pts.back());
     }
-    evaluated_pts.push_back(ctrl_pts.back());
+
     if (extend_x_) ExtendX(evaluated_pts, ctrl_pts);
     return evaluated_pts;
 }
