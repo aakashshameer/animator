@@ -46,6 +46,16 @@ private:
   // Add viscous drag force (f = -k_d * v)
   // You might want to refer to class ConstantForce as template, and create an new class DragForce
   // Note this is optional. You could design your own way to represent DragForce, for sure.
+class DragForce : public Force {
+public:
+    DragForce(float k_d) : k_d_(k_d) { }
+    void SetForce(float k_d) { k_d_ = k_d; }
+    virtual glm::vec3 GetForce(Particle &p) const override {
+        return -k_d_ * p.Velocity;
+    }
+private:
+    float k_d_;
+};
 
 class ParticleSystem : public Component {
 public:
@@ -81,6 +91,7 @@ protected:
     ConstantForce constant_force_;
     // REQUIREMENT:
     // Add a drag force member
+    DragForce drag_force_;
     glm::mat4 model_matrix_;
     double time_to_emit_;
     bool simulating_;

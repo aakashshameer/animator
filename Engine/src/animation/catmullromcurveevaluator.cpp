@@ -33,18 +33,24 @@ std::vector<glm::vec2> CatmullRomCurveEvaluator::EvaluateCurve(const std::vector
         for (int j = 0; j < density; j++) {
             float t = j/(float) density;
             glm::vec2 p = 0.5f*((-t*t*t + 2*t*t - t)*ctrl_pts[0] + (3*t*t*t - 5*t*t + 2)*ctrl_pts[0] + (-3*t*t*t + 4*t*t + t)*ctrl_pts[1] + (t*t*t - t*t)*ctrl_pts[2]);
+            p = p.x > ctrl_pts[2].x ? ctrl_pts[2] : p;
+            p.x = evaluated_pts.size() > 0 && p.x < evaluated_pts.back().x ? evaluated_pts.back().x : p.x;
             evaluated_pts.push_back(p);
         }
         for (size_t i = 0; i < ctrl_pts.size()-3; i++) {
             for (int j = 0; j < density; j++) {
                 float t = j/(float) density;
                 glm::vec2 p = 0.5f*((-t*t*t + 2*t*t - t)*ctrl_pts[i] + (3*t*t*t - 5*t*t + 2)*ctrl_pts[i+1] + (-3*t*t*t + 4*t*t + t)*ctrl_pts[i+2] + (t*t*t - t*t)*ctrl_pts[i+3]);
+                p = p.x > ctrl_pts[i+3].x ? ctrl_pts[i+3] : p;
+                p.x = p.x < evaluated_pts.back().x ? evaluated_pts.back().x : p.x;
                 evaluated_pts.push_back(p);
             }
         }
         for (int j = 0; j < density; j++) {
             float t = j/(float) density;
             glm::vec2 p = 0.5f*((-t*t*t + 2*t*t - t)*ctrl_pts[ctrl_pts.size()-3] + (3*t*t*t - 5*t*t + 2)*ctrl_pts[ctrl_pts.size()-2] + (-3*t*t*t + 4*t*t + t)*ctrl_pts[ctrl_pts.size()-1] + (t*t*t - t*t)*ctrl_pts[ctrl_pts.size()-1]);
+            p = p.x > ctrl_pts[ctrl_pts.size()-1].x ? ctrl_pts[ctrl_pts.size()-1] : p;
+            p.x = p.x < evaluated_pts.back().x ? evaluated_pts.back().x : p.x;
             evaluated_pts.push_back(p);
         }
     }
