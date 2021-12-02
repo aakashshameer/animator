@@ -67,7 +67,7 @@ void ParticleSystem::EmitParticles() {
     // Store particles in the member variable particles_
     // For performance reasons, limit the amount of particles that exist at the same time
     // to some finite amount (MAX_PARTICLES). Either delete or recycle old particles as needed.
-    glm::vec3 init_vel_world = (model_matrix_*glm::vec4(InitialVelocity.Get().x, InitialVelocity.Get().y, InitialVelocity.Get().z, 1.0f)).xyz;
+    glm::vec3 init_vel_world = (glm::mat3(model_matrix_)*InitialVelocity.Get());
     glm::vec3 init_pos_world = (model_matrix_*glm::vec4(0.0f, 0.0f, 0.0f, 1.0f)).xyz;
     glm::vec3 init_rot_world = (model_matrix_*glm::vec4(0.0f, 0.0f, 0.0f, 1.0f)).xyz;
     Particle* p = new Particle(Mass.Get(), init_pos_world, init_vel_world, init_rot_world);
@@ -128,7 +128,7 @@ void ParticleSystem::UpdateSimulation(float delta_t, const std::vector<std::pair
 
        for (auto& p : particles_) {
            glm::vec3 p_pos = (inv_collider_model_matrix*glm::vec4(p->Position.x, p->Position.y, p->Position.z, 1.0f)).xyz;
-           glm::vec3 p_vel = (inv_collider_model_matrix*glm::vec4(p->Velocity.x, p->Velocity.y, p->Velocity.z, 1.0f)).xyz;
+           glm::vec3 p_vel = glm::mat3(inv_collider_model_matrix)*p->Velocity;
            // When checking collisions, remember to bring particles from world space to collider local object space
            // The trasformation matrix can be derived by taking invese of collider_model_matrix
            if (SphereCollider* sphere_collider = collider_object->GetComponent<SphereCollider>()) {
@@ -138,18 +138,18 @@ void ParticleSystem::UpdateSimulation(float delta_t, const std::vector<std::pair
                    glm::vec3 vel_norm = dot(N, p_vel)*N;
                    glm::vec3 vel_tan = p_vel - vel_norm;
                    p_vel = vel_tan - glm::vec3(sphere_collider->Restitution.Get()*vel_norm.x, sphere_collider->Restitution.Get()*vel_norm.y, sphere_collider->Restitution.Get()*vel_norm.z);
-                   p->Velocity = (collider_model_matrix*glm::vec4(p_vel.x, p_vel.y, p_vel.z, 1.0f)).xyz;
+                   p->Velocity = glm::mat3(collider_model_matrix)*p_vel;
                }
            } else if (PlaneCollider* plane_collider = collider_object->GetComponent<PlaneCollider>()) {
                // Check for Plane Collision
                glm::vec3 N = {0, 0, 1.0f};
-               if (dot(p_pos, N) <= particle_radius + EPSILON && dot(p_vel, N) < 0) {
+               if (dot(p_pos, N) <= particle_radius + EPSILON && dot(p_pos, N) > particle_radius - EPSILON && dot(p_vel, N) < 0) {
                    if (p_pos.x > -plane_collider->Width.Get()/2.0f && p_pos.x < plane_collider->Width.Get()/2.0f &&
                        p_pos.y > -plane_collider->Height.Get()/2.0f && p_pos.y < plane_collider->Height.Get()/2.0f) {
                        glm::vec3 vel_norm = dot(N, p_vel)*N;
                        glm::vec3 vel_tan = p_vel - vel_norm;
                        p_vel = vel_tan - glm::vec3(plane_collider->Restitution.Get()*vel_norm.x, plane_collider->Restitution.Get()*vel_norm.y, plane_collider->Restitution.Get()*vel_norm.z);
-                       p->Velocity = (collider_model_matrix*glm::vec4(p_vel.x, p_vel.y, p_vel.z, 1.0f)).xyz;
+                       p->Velocity = glm::mat3(collider_model_matrix)*p_vel;
                    }
                }
            }
